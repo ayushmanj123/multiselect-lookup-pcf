@@ -5,7 +5,7 @@
     <UniqueName>MultiselectLookup</UniqueName>
     <LocalizedNames>
       <!-- Localized Solution Name in language code -->
-      <LocalizedName description="Multiselect Lookup" languagecode="1033" />
+      <LocalizedName description="MultiselectLookup" languagecode="1033" />
     </LocalizedNames>
     <Descriptions>
       <Description description="Lookup that selects multiple records from a subgrid relationship." languagecode="1033" />
@@ -15,21 +15,21 @@
     <Managed>2</Managed>
     <Publisher>
       <!-- Unique Publisher Name of Cds Solution -->
-      <UniqueName>MultiselectLookup</UniqueName>
+      <UniqueName>Ayushman</UniqueName>
       <LocalizedNames>
         <!-- Localized Cds Publisher Name in language code-->
-        <LocalizedName description="MultiselectLookup" languagecode="1033" />
+        <LocalizedName description="Ayushman" languagecode="1033" />
       </LocalizedNames>
       <Descriptions>
         <!-- Description of Cds Publisher in language code -->
-        <Description description="MultiselectLookup" languagecode="1033" />
+        <Description description="Ayushman" languagecode="1033" />
       </Descriptions>
       <EMailAddress xsi:nil="true"></EMailAddress>
       <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
       <!-- Customization Prefix for the Cds Publisher-->
-      <CustomizationPrefix>mslkp</CustomizationPrefix>
+      <CustomizationPrefix>ayushman</CustomizationPrefix>
       <!-- Derived Option Value Prefix for the Customization Prefix of Cds Publisher -->
-      <CustomizationOptionValuePrefix>96116</CustomizationOptionValuePrefix>
+      <CustomizationOptionValuePrefix>51234</CustomizationOptionValuePrefix>
       <Addresses>
         <!-- Address of the Publisher-->
         <Address>
