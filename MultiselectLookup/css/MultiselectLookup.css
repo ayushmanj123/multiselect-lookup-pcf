@@ -1,0 +1,243 @@
+.msl {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--msl-font);
+    font-size: var(--msl-font-size);
+    line-height: var(--msl-line-height);
+    color: var(--msl-text);
+}
+
+.msl *,
+.msl *::before,
+.msl *::after {
+    box-sizing: border-box;
+}
+
+.msl-field {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-height: 32px;
+    border: 1px solid var(--msl-stroke);
+    border-radius: 4px;
+    background: var(--msl-bg);
+}
+
+.msl-field:focus-within {
+    border-color: var(--msl-focus);
+    box-shadow: inset 0 0 0 1px var(--msl-focus);
+}
+
+.msl-field[data-disabled="true"] {
+    background: var(--msl-bg-disabled);
+    border-color: var(--msl-stroke-disabled);
+}
+
+.msl-field[data-disabled="true"]:focus-within {
+    box-shadow: none;
+}
+
+.msl-values {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 3px 2px 3px 8px;
+}
+
+.msl-pill {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    height: 24px;
+    border-radius: 4px;
+    background: var(--msl-pill);
+}
+
+.msl-pill-name,
+.msl-pill-remove,
+.msl-search,
+.msl-option,
+.msl-more {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    background: transparent;
+    color: inherit;
+}
+
+.msl-pill-name {
+    max-width: 240px;
+    padding: 0 2px 0 8px;
+    overflow: hidden;
+    color: var(--msl-link);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.msl-pill-name:hover,
+.msl-pill-name:focus-visible {
+    text-decoration: underline;
+}
+
+.msl-field[data-disabled="true"] .msl-pill-name {
+    padding-right: 8px;
+}
+
+.msl-pill-remove,
+.msl-search {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--msl-icon);
+    cursor: pointer;
+}
+
+.msl-pill-remove {
+    width: 20px;
+    height: 20px;
+    margin-right: 2px;
+    border-radius: 4px;
+}
+
+.msl-pill-remove:hover,
+.msl-search:hover:not(:disabled) {
+    background: var(--msl-hover);
+    color: var(--msl-text);
+}
+
+.msl-input {
+    flex: 1 1 120px;
+    min-width: 120px;
+    height: 24px;
+    border: 0;
+    outline: none;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+}
+
+.msl-input::placeholder {
+    color: var(--msl-placeholder);
+}
+
+.msl-input:disabled {
+    color: var(--msl-text-disabled);
+}
+
+.msl-input:disabled::placeholder {
+    color: var(--msl-text-disabled);
+}
+
+.msl-search {
+    flex: 0 0 32px;
+    width: 32px;
+    min-height: 32px;
+    border-radius: 0 3px 3px 0;
+}
+
+.msl-search:disabled {
+    color: var(--msl-text-disabled);
+    cursor: default;
+}
+
+.msl-search:focus-visible,
+.msl-pill-name:focus-visible,
+.msl-pill-remove:focus-visible,
+.msl-option:focus-visible,
+.msl-more:focus-visible {
+    outline: 1px solid var(--msl-focus);
+    outline-offset: -1px;
+}
+
+.msl-popup {
+    position: absolute;
+    z-index: 20;
+    left: 0;
+    right: 0;
+    top: calc(100% + 2px);
+    max-height: 296px;
+    overflow: auto;
+    padding: 4px 0;
+    border: 1px solid var(--msl-stroke);
+    border-radius: 4px;
+    background: var(--msl-bg);
+    box-shadow: var(--msl-shadow);
+}
+
+.msl-option,
+.msl-more,
+.msl-status {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 32px;
+    padding: 6px 10px;
+    text-align: left;
+}
+
+.msl-option {
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.msl-option[data-active="true"] {
+    background: var(--msl-hover);
+}
+
+.msl-option-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msl-check {
+    flex: 0 0 auto;
+    color: var(--msl-link);
+}
+
+.msl-more {
+    gap: 8px;
+    border-top: 1px solid var(--msl-stroke);
+    color: var(--msl-link);
+    cursor: pointer;
+}
+
+.msl-option[data-active="true"] + .msl-more,
+.msl-more[data-active="true"] {
+    background: var(--msl-hover);
+}
+
+.msl-status {
+    color: var(--msl-placeholder);
+}
+
+.msl-error {
+    margin: 4px 0 0;
+    color: var(--msl-danger);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.msl-spinner {
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    border: 2px solid var(--msl-stroke);
+    border-top-color: var(--msl-focus);
+    border-radius: 50%;
+    animation: msl-spin 0.7s linear infinite;
+}
+
+@keyframes msl-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

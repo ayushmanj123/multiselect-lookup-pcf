@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="MultiselectLookup" constructor="MultiselectLookup" version="1.0.0" display-name-key="Multiselect Lookup" description-key="Lookup that selects multiple records from the subgrid relationship. Set Relationship Name to the relationship schema name, and set the subgrid height to one row." control-type="virtual" >
+    <external-service-usage enabled="false">
+    </external-service-usage>
+    <data-set name="relatedRecords" display-name-key="Related records" cds-data-set-options="displayCommandBar:false;displayViewSelector:false;displayQuickFindSearch:false">
+    </data-set>
+    <property name="relationshipName" display-name-key="Relationship Name" description-key="Schema name of the subgrid relationship, such as new_account_contact." of-type="SingleLine.Text" usage="input" required="true" />
+    <resources>
+      <code path="index.ts" order="1"/>
+      <platform-library name="React" version="16.14.0" />
+      <platform-library name="Fluent" version="9.68.0" />
+      <css path="css/MultiselectLookup.css" order="1" />
+    </resources>
+    <feature-usage>
+      <uses-feature name="Utility" required="true" />
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+  </control>
+</manifest>
