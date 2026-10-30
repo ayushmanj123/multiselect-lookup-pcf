@@ -8,7 +8,6 @@ import {
     isDuplicate,
     openLookupDialog,
     readParentState,
-    searchRecords,
     userFacingError,
 } from "./dataverse";
 import { LookupRecord, mergeRecords, readDatasetRecords } from "./records";
@@ -37,8 +36,6 @@ interface LookupStyle extends React.CSSProperties {
     "--msl-shadow": string;
 }
 
-let controlSequence = 0;
-
 export const LookupControl: React.FunctionComponent<LookupControlProps> = ({ context }) => {
     const dataset = context.parameters.relatedRecords;
     const entityType = dataset.getTargetEntityType();
@@ -49,12 +46,6 @@ export const LookupControl: React.FunctionComponent<LookupControlProps> = ({ con
     const serverRecords = readDatasetRecords(dataset);
     const serverKey = serverRecords.map((record) => record.id).join("|");
 
-    const [query, setQuery] = React.useState("");
-    const [open, setOpen] = React.useState(false);
-    const [activeIndex, setActiveIndex] = React.useState(0);
-    const [results, setResults] = React.useState<LookupRecord[]>([]);
-    const [searching, setSearching] = React.useState(false);
-    const [searchError, setSearchError] = React.useState("");
     const [actionError, setActionError] = React.useState("");
     const [pendingAdds, setPendingAdds] = React.useState<LookupRecord[]>([]);
     const [pendingRemoves, setPendingRemoves] = React.useState<string[]>([]);
@@ -62,19 +53,9 @@ export const LookupControl: React.FunctionComponent<LookupControlProps> = ({ con
 
     const contextRef = React.useRef(context);
     contextRef.current = context;
-    const inputRef = React.useRef<HTMLInputElement>(null);
-    const activeRef = React.useRef<HTMLButtonElement | null>(null);
-    const controlId = React.useRef("");
-    if (!controlId.current) {
-        controlSequence += 1;
-        controlId.current = `msl-${controlSequence}`;
-    }
-    const listId = `${controlId.current}-list`;
 
     const selected = mergeRecords(serverRecords, pendingAdds, pendingRemoves);
     const selectedIds = new Set(selected.map((record) => record.id));
-    const optionCount = results.length + 1;
-    const safeIndex = optionCount === 0 ? 0 : ((activeIndex % optionCount) + optionCount) % optionCount;
     const label = context.mode.label.trim() || "Lookup";
     const placeholder =
         formRecord.kind === "unsaved"
@@ -89,49 +70,6 @@ export const LookupControl: React.FunctionComponent<LookupControlProps> = ({ con
         setPendingAdds((current) => current.filter((record) => !serverIds.has(record.id)));
         setPendingRemoves((current) => current.filter((id) => serverIds.has(id)));
     }, [serverKey]);
-
-    React.useEffect(() => {
-        if (!open || disabled || !entityType) {
-            return undefined;
-        }
-
-        let cancelled = false;
-        const timer = window.setTimeout(() => {
-            setSearching(true);
-            void searchRecords(contextRef.current, entityType, viewId, query)
-                .then((records) => {
-                    if (cancelled) {
-                        return undefined;
-                    }
-                    setResults(records);
-                    setSearchError("");
-                    setActiveIndex(0);
-                    return undefined;
-                })
-                .catch((error: unknown) => {
-                    if (cancelled) {
-                        return undefined;
-                    }
-                    setResults([]);
-                    setSearchError(userFacingError(error));
-                    return undefined;
-                })
-                .finally(() => {
-                    if (!cancelled) {
-                        setSearching(false);
-                    }
-                });
-        }, 250);
-
-        return () => {
-            cancelled = true;
-            window.clearTimeout(timer);
-        };
-    }, [disabled, entityType, open, query, viewId]);
-
-    React.useEffect(() => {
-        activeRef.current?.scrollIntoView({ block: "nearest" });
-    }, [open, safeIndex]);
 
     const requireLink = (): { relationship: string; parentId: string; parentType: string } | undefined => {
         if (!relationshipName) {
@@ -214,7 +152,6 @@ export const LookupControl: React.FunctionComponent<LookupControlProps> = ({ con
             })
             .finally(() => {
                 setBusy(false);
-                inputRef.current?.focus();
             });
     };
 
@@ -230,11 +167,9 @@ export const LookupControl: React.FunctionComponent<LookupControlProps> = ({ con
         if (disabled || !entityType || busy) {
             return;
         }
-        setOpen(false);
-        void openLookupDialog(contextRef.current, entityType, viewId, query)
+        void openLookupDialog(contextRef.current, entityType, viewId, "")
             .then((picked) => {
                 addRecords(picked);
-                setQuery("");
                 return undefined;
             })
             .catch((error: unknown) => {
@@ -243,64 +178,6 @@ export const LookupControl: React.FunctionComponent<LookupControlProps> = ({ con
                 }
                 return undefined;
             });
-    };
-
-    const choose = (record: LookupRecord): void => {
-        if (selectedIds.has(record.id)) {
-            removeRecord(record);
-        } else {
-            addRecords([record]);
-        }
-        setQuery("");
-    };
-
-    const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
-        if (event.key === "ArrowDown") {
-            event.preventDefault();
-            setOpen(true);
-            setActiveIndex((index) => (index + 1) % optionCount);
-            return;
-        }
-        if (event.key === "ArrowUp") {
-            event.preventDefault();
-            setOpen(true);
-            setActiveIndex((index) => (index - 1 + optionCount) % optionCount);
-            return;
-        }
-        if (event.key === "Enter") {
-            event.preventDefault();
-            if (!open) {
-                setOpen(true);
-                return;
-            }
-            if (safeIndex >= results.length) {
-                openDialog();
-                return;
-            }
-            const record = results[safeIndex];
-            if (record) {
-                choose(record);
-            }
-            return;
-        }
-        if (event.key === "Escape") {
-            setOpen(false);
-            return;
-        }
-        if (event.key === "Backspace" && query.length === 0) {
-            const last = selected[selected.length - 1];
-            if (last) {
-                removeRecord(last);
-            }
-        }
-    };
-
-    const onBlur = (event: React.FocusEvent<HTMLDivElement>): void => {
-        const next = event.relatedTarget;
-        if (next instanceof Node && event.currentTarget.contains(next)) {
-            return;
-        }
-        setOpen(false);
     };
 
     const theme = hostTheme(context);
@@ -326,7 +203,7 @@ export const LookupControl: React.FunctionComponent<LookupControlProps> = ({ con
 
     return (
         <FluentProvider theme={theme} style={{ background: "transparent", width: "100%" }}>
-            <div className="msl" style={style} onBlur={onBlur}>
+            <div className="msl" style={style}>
                 <div className="msl-field" data-disabled={disabled ? "true" : "false"}>
                     <div className="msl-values">
                         {selected.map((record) => (
@@ -348,28 +225,17 @@ export const LookupControl: React.FunctionComponent<LookupControlProps> = ({ con
                                 )}
                             </span>
                         ))}
-                        <input
-                            ref={inputRef}
-                            className="msl-input"
-                            role="combobox"
-                            aria-label={label}
-                            aria-expanded={open}
-                            aria-controls={listId}
-                            aria-autocomplete="list"
-                            aria-activedescendant={open ? optionElementId(listId, safeIndex, results.length) : undefined}
-                            aria-busy={busy || dataset.loading}
-                            autoComplete="off"
-                            spellCheck={false}
-                            placeholder={placeholder}
-                            value={query}
-                            disabled={disabled}
-                            onFocus={() => { setOpen(true); }}
-                            onChange={(event) => {
-                                setQuery(event.target.value);
-                                setOpen(true);
-                            }}
-                            onKeyDown={onKeyDown}
-                        />
+                        {selected.length === 0 && (
+                            <input
+                                className="msl-input"
+                                aria-label={label}
+                                aria-busy={busy || dataset.loading}
+                                readOnly
+                                tabIndex={-1}
+                                placeholder={placeholder}
+                                value=""
+                            />
+                        )}
                     </div>
                     <button
                         type="button"
@@ -381,64 +247,11 @@ export const LookupControl: React.FunctionComponent<LookupControlProps> = ({ con
                         <SearchIcon />
                     </button>
                 </div>
-                {open && !disabled && (
-                    <div className="msl-popup" id={listId} role="listbox" aria-label={label} aria-multiselectable="true">
-                        {searching && results.length === 0 && (
-                            <div className="msl-status" role="status">
-                                <span className="msl-spinner" />
-                                Searching
-                            </div>
-                        )}
-                        {!searching && searchError && <div className="msl-status">{searchError}</div>}
-                        {!searching && !searchError && results.length === 0 && (
-                            <div className="msl-status">No records found</div>
-                        )}
-                        {results.map((record, index) => (
-                            <button
-                                key={record.id}
-                                ref={index === safeIndex ? activeRef : undefined}
-                                id={`${listId}-option-${index}`}
-                                type="button"
-                                role="option"
-                                aria-selected={selectedIds.has(record.id)}
-                                className="msl-option"
-                                data-active={index === safeIndex ? "true" : "false"}
-                                onMouseDown={(event) => { event.preventDefault(); }}
-                                onMouseEnter={() => { setActiveIndex(index); }}
-                                onClick={() => { choose(record); }}
-                            >
-                                <span className="msl-option-name">{record.name}</span>
-                                {selectedIds.has(record.id) && (
-                                    <span className="msl-check" aria-hidden="true">
-                                        <CheckIcon />
-                                    </span>
-                                )}
-                            </button>
-                        ))}
-                        <button
-                            ref={safeIndex >= results.length ? activeRef : undefined}
-                            id={`${listId}-more`}
-                            type="button"
-                            className="msl-more"
-                            data-active={safeIndex >= results.length ? "true" : "false"}
-                            onMouseDown={(event) => { event.preventDefault(); }}
-                            onMouseEnter={() => { setActiveIndex(results.length); }}
-                            onClick={openDialog}
-                        >
-                            <SearchIcon />
-                            Look up more records
-                        </button>
-                    </div>
-                )}
                 {notice && <div className="msl-error" role="alert">{notice}</div>}
             </div>
         </FluentProvider>
     );
 };
-
-function optionElementId(listId: string, index: number, resultCount: number): string {
-    return index >= resultCount ? `${listId}-more` : `${listId}-option-${index}`;
-}
 
 function hostTheme(context: ComponentFramework.Context<IInputs>): Theme {
     const fallback = context.fluentDesignLanguage?.isDarkTheme ? webDarkTheme : webLightTheme;
@@ -466,11 +279,5 @@ const SearchIcon: React.FunctionComponent = () => (
 const DismissIcon: React.FunctionComponent = () => (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
         <path d="M2.09 2.22a.5.5 0 0 1 .63-.06l.07.06L6 5.29l3.21-3.07a.5.5 0 0 1 .7.7L6.71 6l3.2 3.08a.5.5 0 0 1-.63.76l-.07-.06L6 6.71 2.79 9.78a.5.5 0 0 1-.7-.7L5.29 6 2.09 2.92a.5.5 0 0 1 0-.7Z" />
-    </svg>
-);
-
-const CheckIcon: React.FunctionComponent = () => (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-        <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0L2.22 7.28a.75.75 0 1 1 1.06-1.06L7 9.94l5.72-5.72a.75.75 0 0 1 1.06 0Z" />
     </svg>
 );
